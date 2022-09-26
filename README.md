@@ -56,7 +56,7 @@ import wget
 
 
 #your token to access the HTTP API
-API_TOKEN = '5500538343:AAEMKoYwfyR2PkTLZF9Dpx5fqjZpoqfk0gE'
+API_TOKEN = 'Your bot token'
 
 bot = telebot.TeleBot(API_TOKEN)
 
