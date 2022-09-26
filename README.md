@@ -1,6 +1,6 @@
-# InnoPrintBot
+# DexPrint 
 
-Bot for printing and scanning on the public printer of Innopolis University on the 5th floor.
+
 
 ## Table of Contents
 
@@ -9,11 +9,12 @@ Bot for printing and scanning on the public printer of Innopolis University on t
 - [Deploy](#deploy)
 
 
+
 ## About
 
 Bot which allows to print and scan with different parameters using the Telegram messenger.
 
-It has ready-to-use components, so it's easy to add functionality.
+You can send any file for printing or scanning. It is mean't for businesses and automates every process however possible.
 
 ## Used
 
@@ -32,16 +33,9 @@ It has ready-to-use components, so it's easy to add functionality.
 
 ### Environment
 
-1. Rename [.env-example](https://github.com/Drop-Team/InnoPrintBot/blob/main/.env-example) to `.env`.
-2. Edit it
 
 ### Printer driver
-
-It is used by CUPS
-
-Edit [Printer.ppd](https://github.com/Drop-Team/InnoPrintBot/blob/main/Bot/data/Printer.ppd) if necessary<br>
-Now it contains drivers for "Kyocera ECOSYS M3645dn"
-
+ cups are used ( this is specific for printers and should be added for supported printers)
 ### Docker
 
 To run use Docker:
@@ -51,3 +45,57 @@ docker-compose build
 docker-compose -d up  # -d to run in background 
 docker-compose ps
 ```
+
+### Problems "if you run into problems with networking or hosting your printer on a server an alternative will be to run this program:
+import os
+import win32api
+import telebot
+import wget
+
+
+
+
+#your token to access the HTTP API
+API_TOKEN = '5500538343:AAEMKoYwfyR2PkTLZF9Dpx5fqjZpoqfk0gE'
+
+bot = telebot.TeleBot(API_TOKEN)
+
+@bot.message_handler(content_types=['document', 'photo'])
+def get_doc(message):
+	try:
+		if message.content_type == 'photo':
+			doc_id = message.photo[-1].file_id
+		else:
+			doc_id = message.document.file_id
+		#get info about file
+		doc = bot.get_file(doc_id)
+		#download it
+		filename = wget.download('https://api.telegram.org/file/bot{0}/{1}'.format(API_TOKEN, doc.file_path))
+		#get file path on host
+		file_path = os.path.join(os.getcwd(), filename)
+		#print it with default printer
+		win32api.ShellExecute(0, "print", file_path, None,  ".",  0)
+		#Send messsage that everything is ok
+		bot.send_message(message.from_user.id, "printing!")
+		bot.send_message(message.from_user.id, "🖨️")
+
+
+
+
+	except Exception as error:
+		#if something went wrong send error message with a reason
+		bot.send_message(message.from_user.id, 'Error! \nAdditional information: {}'.format(error))
+
+
+@bot.message_handler(content_types=['text'])
+def send_message(message):
+	bot.send_message(message.from_user.id, '😌')
+	bot.send_message(message.from_user.id, f'You said {message.text}.' '\nTo print simply send a document to print')
+
+
+#print(bot.message.from_user)
+
+#start bot
+bot.polling(none_stop=True, interval=0) 
+
+### this program is quiet limited because your device needs to be ON constantly.  Another option is to host this on google cloud and interact with it through google. 
